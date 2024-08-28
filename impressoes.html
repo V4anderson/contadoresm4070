@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busca de Contadores</title>
+    <style>
+        /* Mesma estilização fornecida anteriormente */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            justify-content: center;
+            background-color: #f4f4f4;
+            height: auto;
+            align-items: center;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            max-width: 600px;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        thead tr th {
+            border: 2px solid #333;
+            background-color: #333;
+            color: white;
+            padding: 10px;
+        }
+
+        tbody tr td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+            background-color: #f9f9f9;
+        }
+
+        tbody tr:nth-child(even) td {
+            background-color: #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Host</th>
+                    <th>Total de Impressões</th>
+                </tr>
+            </thead>
+            <tbody id="dynamicTbody">
+                <!-- Dados dinâmicos serão inseridos aqui -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Função para buscar os dados do backend
+        function fetchCounters() {
+            fetch('contadores.php')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById('dynamicTbody');
+                    tbody.innerHTML = ''; // Limpa o conteúdo atual do tbody
+
+                    // Itera sobre os dados recebidos e cria linhas na tabela
+                    for (const [ip, info] of Object.entries(data)) {
+                        let tr = document.createElement('tr');
+
+                        // Adiciona o IP como nome do host
+                        let tdHost = document.createElement('td');
+                        tdHost.textContent = ip;
+                        tr.appendChild(tdHost);
+
+                        // Adiciona o valor de GXI_BILLING_TOTAL_IMP_CNT ou erro
+                        let tdValue = document.createElement('td');
+                        if (info.GXI_BILLING_TOTAL_IMP_CNT !== undefined) {
+                            tdValue.textContent = info.GXI_BILLING_TOTAL_IMP_CNT;
+                        } else {
+                            tdValue.textContent = info.error || 'Não disponível';
+                        }
+                        tr.appendChild(tdValue);
+
+                        tbody.appendChild(tr);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar os dados:', error);
+                    document.getElementById('dynamicTbody').innerHTML = `<tr><td colspan="2">Erro ao buscar os dados</td></tr>`;
+                });
+        }
+
+        // Chama a função para buscar os contadores ao carregar a página
+        window.onload = fetchCounters;
+    </script>
+</body>
+</html>

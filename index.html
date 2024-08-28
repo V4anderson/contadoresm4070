@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Busca de Contadores</title>
     <style>
+        /* Estilos... */
         body {
             margin: 0;
             padding: 0;
@@ -27,42 +28,6 @@
             background-color: white;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
-        }
-
-        .group-form {
-            width: 100%;
-            max-width: 600px;
-            margin-bottom: 20px;
-        }
-
-        .group-form form {
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .group-form input {
-            width: 70%;
-            height: 40px;
-            font-size: 18px;
-            padding: 5px 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        .group-form button {
-            width: 28%;
-            height: 40px;
-            font-size: 18px;
-            border: none;
-            background-color: #333;
-            color: white;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-
-        .group-form button:hover {
-            background-color: #555;
         }
 
         table {
@@ -93,57 +58,76 @@
 </head>
 <body>
     <div class="container">
-        <div class="group-form">
-            <form id="form" method="post" >
-                <input type="text" name="ip" id="ip" placeholder="127.0.0.1" required >
-                <button type="submit" >Buscar</button>
-            </form>
-        </div>
+       <a href="buscarUmaImpressora.html">Busca com digitação de IP</a>
         <table>
             <thead>
                 <tr>
-                    <th>Descrição</th>
-                    <th>Valor</th>
+                    <th>Impressora</th>
+                    <th>Quantidade de Impressões</th>
                 </tr>
             </thead>
             <tbody id="dynamicTbody">
                 <!-- Dados dinâmicos serão inseridos aqui -->
             </tbody>
         </table>
+        <button id="fetchDataBtn">Buscar Todas</button>
     </div>
 
     <script>
-        document.getElementById('form').addEventListener('submit', function(event) {
-            event.preventDefault(); // Previne o comportamento padrão do formulário
-            document.getElementById('form').style.display="none"
-            const ip = document.getElementById('ip').value; // Obtém o valor do IP
+        const printers = [
+            { host: 'IMTI_SHOWROOM', ip: '10.81.2.30' },
+            { host: 'IMTI_CAIXA', ip: '10.81.2.31' },
+            { host: 'IMTI_ANALISE', ip: '10.81.2.32' },
+            { host: 'IMTI_ESTOQUE', ip: '10.81.2.33' },
+            { host: 'IMTI_FATURA', ip: '10.81.2.34' },
+            { host: 'IMTI_RECEPCAO', ip: '10.81.2.35' },
+            { host: 'IMTI_ARQUIVO', ip: '10.81.2.36' },
+            // { host: 'IMTI_GERPOSVENDA', ip: '10.81.2.37' },
+            // { host: 'IMTI_SECVENDAS', ip: '10.81.2.38' },
+            // { host: 'IMTI_NELIDA', ip: '10.81.2.39' },
+            { host: 'IMGO_SHOWROOM', ip: '10.81.4.30' },
+            { host: 'IMGO_CNH', ip: '10.81.4.31' },
+            { host: 'IMGO_ESTOQUE', ip: '10.81.4.32' },
+            { host: 'IMGO_CAIXA', ip: '10.81.4.33' },
+            { host: 'IMGO_RECEPCAO', ip: '10.81.4.34' },
+            { host: 'IMIT_CNH', ip: '10.81.3.30' },
+            { host: 'IMIT_FATURA', ip: '10.81.3.31' },
+            { host: 'IMIT_CAIXA', ip: '10.81.3.32' },
+            { host: 'IMIT_RECEPCAO', ip: '10.81.3.33' },
+            { host: 'IMCA_SHOWROOM', ip: '10.81.5.30' },
+            { host: 'IMCA_CAIXA', ip: '10.81.5.31' },
+            { host: 'IMCA_FATURA', ip: '10.81.5.32' },
+            { host: 'IMCA_CNH', ip: '10.81.5.33' },
+            { host: 'IMCA_ESTOQUE', ip: '10.81.5.34' },
+            { host: 'IMCA_RECEPCAO', ip: '10.81.5.35' }
+        ];
 
-            fetch('objectJS.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded', // Envia os dados como formulário
-                },
-                body: new URLSearchParams({ ip: ip }) // Serializa os dados do IP para o corpo da requisição
-            })
-            .then(response => response.json())
-            .then(data => {
-                const tbody = document.getElementById('dynamicTbody');
-                tbody.innerHTML = ''; // Limpa o conteúdo atual do tbody
+        document.getElementById('fetchDataBtn').addEventListener('click', function() {
+            const tbody = document.getElementById('dynamicTbody');
+            tbody.innerHTML = ''; // Limpa o conteúdo atual do tbody
 
-                if (data.error) {
-                    // Se houver um erro, exibe uma linha na tabela com a mensagem de erro
-                    tbody.innerHTML = `<tr><td colspan="2">${data.error}</td></tr>`;
-                } else {
-                    // Itera sobre os dados recebidos e cria linhas na tabela
-                    for (const [key, value] of Object.entries(data)) {
-                        tbody.innerHTML += `<tr><td>${key}</td><td>${value}</td></tr>`;
+            printers.forEach(printer => {
+                fetch('contadores.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({ ip: printer.ip })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        tbody.innerHTML += `<tr><td>${printer.host}</td><td>${data.error}</td></tr>`;
+                    } else if (data["GXI_BILLING_TOTAL_IMP_CNT"] !== undefined) {
+                        tbody.innerHTML += `<tr><td>${printer.host}</td><td>${data["GXI_BILLING_TOTAL_IMP_CNT"]}</td></tr>`;
+                    } else {
+                        tbody.innerHTML += `<tr><td>${printer.host}</td><td>Chave não encontrada</td></tr>`;
                     }
-                    document.getElementById('form').style.display="block"
-                }
-            })
-            .catch(error => {
-                console.error('Erro ao buscar os dados:', error);
-                document.getElementById('dynamicTbody').innerHTML = `<tr><td colspan="2">Erro ao buscar os dados</td></tr>`;
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar os dados:', error);
+                    tbody.innerHTML += `<tr><td>${printer.host}</td><td>Erro ao buscar os dados</td></tr>`;
+                });
             });
         });
     </script>
